@@ -1,16 +1,16 @@
 package top.szzz666.nukkit_plugin.tools;
 
 import cn.nukkit.command.CommandSender;
-import cn.nukkit.utils.TextFormat;
 import io.leego.banana.BananaUtils;
 import io.leego.banana.Font;
 import lombok.SneakyThrows;
+import top.szzz666.nukkit_plugin.Main;
 import top.szzz666.nukkit_plugin.panel.esay_chest_menu.lib.AbstractFakeInventory;
 
 import static top.szzz666.nukkit_plugin.Main.nkServer;
 import static top.szzz666.nukkit_plugin.Main.plugin;
 
-public class pluginUtil {
+public class PluginUtil {
     public static void multCmd(CommandSender sender, String command) {
         nkServer.getCommandMap().dispatch(sender, command);
     }
@@ -32,11 +32,13 @@ public class pluginUtil {
 
         AbstractFakeInventory.IS_PM1E = ver;
         if(ver){
-            nkConsole("当前插件运行在: Nukkit PM1E 核心上");
+            Main.logger.info("当前插件运行在: Nukkit MOT 核心上");
         }else{
-            nkConsole("当前插件运行在: Nukkit 核心上");
+            Main.logger.info("当前插件运行在: Nukkit 核心上");
         }
     }
+
+
     //Banana
     @SneakyThrows
     public static void pluginNameLineConsole() {
@@ -47,22 +49,9 @@ public class pluginUtil {
     public static void lineConsole(String s) {
         String[] lines = s.split("\n");
         for (String line : lines) {
-            nkConsole(line);
+            Main.logger.info(line);
         }
     }
 
-    //使用nk插件的控制台输出
-    public static void nkConsole(String msg) {
-        plugin.getLogger().info(TextFormat.colorize('&', msg));
-    }
 
-    public static void nkConsole(String msg, int typeNum) {
-        if (typeNum == 1) {
-            plugin.getLogger().warning(TextFormat.colorize('&', msg));
-        } else if (typeNum == 2) {
-            plugin.getLogger().error(TextFormat.colorize('&', msg));
-        } else {
-            plugin.getLogger().info(TextFormat.colorize('&', msg));
-        }
-    }
 }

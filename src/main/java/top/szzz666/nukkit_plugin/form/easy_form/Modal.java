@@ -6,7 +6,7 @@ import cn.nukkit.form.window.FormWindow;
 import cn.nukkit.form.window.FormWindowModal;
 import lombok.Data;
 
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Async;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Async;
 
 
 @Data

@@ -14,7 +14,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
 
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Delayed;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Delayed;
 
 
 /**

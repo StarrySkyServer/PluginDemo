@@ -13,7 +13,7 @@ import top.szzz666.nukkit_plugin.panel.esay_chest_menu.lib.ChestFakeInventory;
 
 import java.util.*;
 
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Delayed;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Delayed;
 
 
 public class ChestMenu extends ChestFakeInventory {

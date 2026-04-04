@@ -6,8 +6,8 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.event.inventory.InventoryTransactionEvent;
 import cn.nukkit.inventory.transaction.action.SlotChangeAction;
 import top.szzz666.nukkit_plugin.panel.esay_chest_menu.lib.ChestFakeInventory;
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Async;
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Delayed;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Async;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Delayed;
 
 
 public class CMListener implements Listener {

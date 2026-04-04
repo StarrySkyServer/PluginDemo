@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
-import static top.szzz666.nukkit_plugin.tools.taskUtil.Async;
+import static top.szzz666.nukkit_plugin.tools.TaskUtil.Async;
 
 
 @Data

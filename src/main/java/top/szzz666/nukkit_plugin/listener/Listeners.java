@@ -1,4 +1,4 @@
-package top.szzz666.nukkit_plugin.event;
+package top.szzz666.nukkit_plugin.listener;
 
 import cn.nukkit.Player;
 import cn.nukkit.event.EventHandler;

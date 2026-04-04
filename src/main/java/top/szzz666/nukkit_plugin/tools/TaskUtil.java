@@ -7,7 +7,7 @@ import static top.szzz666.nukkit_plugin.Main.nkServer;
 import static top.szzz666.nukkit_plugin.Main.plugin;
 
 
-public class taskUtil {
+public class TaskUtil {
     // 同步   Sync(() -> {});
     public static TaskHandler Sync(Runnable logic) {
         return nkServer.getScheduler().scheduleTask(plugin, new AsyncTask() {

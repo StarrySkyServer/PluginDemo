@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/../TestServer/plugins</output-path>
     <root id="archive" name="PluginDemo.jar">
       <element id="module-output" name="PluginDemo" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/banana-2.1.0.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: io.leego:banana:2.1.0" />
     </root>
   </artifact>
 </component>
