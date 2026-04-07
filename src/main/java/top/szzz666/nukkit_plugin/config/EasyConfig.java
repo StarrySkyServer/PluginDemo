@@ -25,7 +25,7 @@ public class EasyConfig {
      * @param key          配置项名称
      * @param defaultValue 默认值
      */
-    public void add(String key, Object defaultValue) {
+    public synchronized void add(String key, Object defaultValue) {
         defaults.put(key, defaultValue);
     }
 
@@ -36,7 +36,7 @@ public class EasyConfig {
      * @param defaultValue 默认值
      * @param comment      注释内容
      */
-    public void add(String key, Object defaultValue, String comment) {
+    public synchronized void add(String key, Object defaultValue, String comment) {
         defaults.put(key, defaultValue);
         if (comment != null && !comment.isEmpty()) {
             comments.put(key, comment);
@@ -48,7 +48,7 @@ public class EasyConfig {
      *
      * @param configClass 配置类
      */
-    public void loadFromClass(Class<?> configClass) {
+    public synchronized void loadFromClass(Class<?> configClass) {
         for (Field field : configClass.getDeclaredFields()) {
             ConfigItem annotation = field.getAnnotation(ConfigItem.class);
             if (annotation != null) {
@@ -116,6 +116,9 @@ public class EasyConfig {
 
     public int getInt(String key) {
         Object value = get(key);
+        if (value == null) {
+            return 0;
+        }
         if (value instanceof Integer) {
             return (Integer) value;
         } else if (value instanceof String) {
@@ -126,6 +129,9 @@ public class EasyConfig {
 
     public boolean getBoolean(String key) {
         Object value = get(key);
+        if (value == null) {
+            return false;
+        }
         if (value instanceof Boolean) {
             return (Boolean) value;
         }
@@ -134,6 +140,9 @@ public class EasyConfig {
 
     public double getDouble(String key) {
         Object value = get(key);
+        if (value == null) {
+            return 0.0;
+        }
         if (value instanceof Double) {
             return (Double) value;
         } else if (value instanceof String) {
@@ -150,11 +159,11 @@ public class EasyConfig {
         return get(key);
     }
 
-    public void set(String key, Object value) {
-        config.put(key, value);
+    public synchronized void set(String key, Object value) {
+        setNestedValue(config, key, value);
     }
 
-    public void load() {
+    public synchronized void load() {
         Yaml yaml = new Yaml();
         File configFile = new File(configFilePath);
 
@@ -222,7 +231,7 @@ public class EasyConfig {
     /**
      * 保存配置文件（带注释支持）
      */
-    public void save() {
+    public synchronized void save() {
         try {
             File configFile = new File(configFilePath);
             File parentDir = configFile.getParentFile();
@@ -246,18 +255,18 @@ public class EasyConfig {
      * 写入带注释的配置内容（支持嵌套结构）
      */
     private void writeConfigWithComments(Writer writer) throws IOException {
-        writeNestedMap(writer, config, "", new StringBuilder(), comments);
+        writeNestedMap(writer, config, "", "", comments);
     }
 
     /**
      * 递归写入嵌套 Map，通过 parentPath 精确追踪嵌套层级以匹配注释
      */
     private void writeNestedMap(Writer writer, Map<String, Object> map, String indent,
-                                StringBuilder parentPath, Map<String, String> allComments) throws IOException {
+                                String parentPath, Map<String, String> allComments) throws IOException {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            String fullKey = buildFullKey(parentPath, key);
+            String fullKey = parentPath.isEmpty() ? key : parentPath + key;
 
             // 根据完整键路径精确匹配注释
             String comment = allComments.get(fullKey);
@@ -268,26 +277,28 @@ public class EasyConfig {
             }
 
             if (value instanceof Map) {
-                writer.write(indent + key + ":\n");
-                writeNestedMap(writer, (Map<String, Object>) value, indent + "  ",
-                        new StringBuilder(fullKey).append('.'), allComments);
-            } else if (value instanceof List) {
-                writer.write(indent + key + ":");
-                for (Object item : (List<?>) value) {
-                    writer.write("\n" + indent + "  - " + toYamlValue(item));
+                Map<?, ?> nestedMap = (Map<?, ?>) value;
+                if (nestedMap.isEmpty()) {
+                    writer.write(indent + key + ": {}\n");
+                } else {
+                    writer.write(indent + key + ":\n");
+                    writeNestedMap(writer, (Map<String, Object>) value, indent + "  ",
+                            fullKey + ".", allComments);
                 }
-                writer.write("\n");
+            } else if (value instanceof List<?> list) {
+                if (list.isEmpty()) {
+                    writer.write(indent + key + ": []\n");
+                } else {
+                    writer.write(indent + key + ":");
+                    for (Object item : list) {
+                        writer.write("\n" + indent + "  - " + toYamlValue(item));
+                    }
+                    writer.write("\n");
+                }
             } else {
                 writer.write(indent + key + ": " + toYamlValue(value) + "\n");
             }
         }
-    }
-
-    /**
-     * 构建完整的嵌套键路径（如 database.jdbcUrl）
-     */
-    private String buildFullKey(StringBuilder parentPath, String currentKey) {
-        return parentPath.isEmpty() ? currentKey : parentPath + currentKey;
     }
 
     /**
@@ -297,11 +308,7 @@ public class EasyConfig {
         if (value == null) {
             return "null";
         } else if (value instanceof String str) {
-            // 如果字符串包含特殊字符，加引号
-            if (str.contains(":") || str.contains("#") || str.contains("\n") || str.isEmpty()) {
-                return "\"" + str.replace("\"", "\\\"") + "\"";
-            }
-            return str;
+            return quoteYamlString(str);
         } else if (value instanceof List) {
             StringBuilder sb = new StringBuilder("\n");
             for (Object item : (List<?>) value) {
@@ -316,5 +323,36 @@ public class EasyConfig {
             return sb.toString();
         }
         return value.toString();
+    }
+
+    /**
+     * 对字符串进行 YAML 安全转义，仅在必要时加引号
+     */
+    private static String quoteYamlString(String str) {
+        if (str.isEmpty()) {
+            return "\"\"";
+        }
+        // 需要引号的情况：特殊字符、空格开头/结尾、可能是布尔/null/数字
+        boolean needsQuote = Character.isWhitespace(str.charAt(0))
+                || Character.isWhitespace(str.charAt(str.length() - 1))
+                || str.matches(".*[#:{}\\[\\],&*?|><!%@`].*")
+                || "true".equalsIgnoreCase(str) || "false".equalsIgnoreCase(str)
+                || "null".equalsIgnoreCase(str) || "yes".equalsIgnoreCase(str)
+                || "no".equalsIgnoreCase(str) || "on".equalsIgnoreCase(str)
+                || "off".equalsIgnoreCase(str)
+                || str.matches("-?\\d+(\\.\\d+)?");
+
+        if (!needsQuote && !str.contains("\"")) {
+            return str;
+        }
+        return "\"" + str.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\t", "\\t") + "\"";
+    }
+
+    /**
+     * 重新加载配置文件（适用于热重载场景）
+     */
+    public synchronized void reload() {
+        config = new LinkedHashMap<>();
+        load();
     }
 }
