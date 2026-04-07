@@ -10,7 +10,6 @@ import top.szzz666.nukkit_plugin.config.EasyConfig;
 import top.szzz666.nukkit_plugin.listener.Listeners;
 import top.szzz666.nukkit_plugin.panel.esay_chest_menu.CMListener;
 
-import static top.szzz666.nukkit_plugin.config.MyConfig.database_jdbcUrl;
 import static top.szzz666.nukkit_plugin.config.MyConfig.initConfig;
 import static top.szzz666.nukkit_plugin.tools.PluginUtil.checkServer;
 
