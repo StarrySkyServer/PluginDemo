@@ -514,8 +514,13 @@ public class EasyConfig {
                 }
             } else if (value instanceof List) {
                 // 列表类型
-                sb.append(keyStr).append(":\n");
-                appendListItems(sb, (List<?>) value, indent + 2);
+                sb.append(keyStr).append(":");
+                if (((List<?>) value).isEmpty()) {
+                    sb.append(" []").append("\n");
+                } else {
+                    sb.append("\n");
+                    appendListItems(sb, (List<?>) value, indent + 2);
+                }
             } else {
                 // 基本类型
                 sb.append(keyStr).append(": ");
@@ -528,7 +533,6 @@ public class EasyConfig {
             }
         }
     }
-
     /**
      * 追加缩进
      */
